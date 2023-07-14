@@ -40,11 +40,26 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 		
 		//Nick ändern
 		if (channelEntry[newState?.id]) {
-			newState.member.setNickname(nickname)
+				newState.member.setNickname(nickname)
+				.catch(err => {console.log(`Fehler beim Ändern des Nicknamens auf ${nickname}: ${err}`);});
 			console.log('Benutzer geändert auf '+nickname);
-			//kA wie ich den Nickname ändern
 		}
 	}
+	
+	//Channel leaven
+	if (channelMappings[oldState?.channelId]) {
+		const channelEntry = channelMappings[oldState?.channelId];
+		const nickname = channelEntry[oldState?.id];
+		
+		//Nick ändern
+		if (channelEntry[oldState?.id]) {
+				oldState.member.setNickname()
+				.catch(err => {console.log(`Fehler beim Ändern des Nicknamens auf ${nickname}: ${err}`);});
+			console.log('Benutzer auf Standard geändert');
+		}
+	}
+	
+	
 });
 
 

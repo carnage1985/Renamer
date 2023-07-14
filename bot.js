@@ -16,14 +16,14 @@ const channelMappings = {
     '469913673142501376': 'Lyra',
     '603651594503979008': 'Moradrosch',
     '1118451880998228048': 'Oriphan',
-//	'324155395709075457': 'DM',	
+	'324155395709075457': 'DM',	
   },
   '1123167792309477417': { //Strahd
     '219790807454973952': 'Alvin Stopperdukk',
     '249208306470486016': 'Arkino',
     '452762791326253056': 'Sir Samuel Ramkin',
     '219801430158999552': 'Theodora',
-//	'324155395709075457': 'DM',
+	'324155395709075457': 'DM',
   }
 };
 
@@ -40,11 +40,26 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 		
 		//Nick ändern
 		if (channelEntry[newState?.id]) {
-			newState.member.setNickname(nickname)
+				newState.member.setNickname(nickname)
+				.catch(err => {console.log(`Fehler beim Ändern des Nicknamens auf ${nickname}: ${err}`);});
 			console.log('Benutzer geändert auf '+nickname);
-			//kA wie ich den Nickname ändern
 		}
 	}
+	
+	//Channel leaven
+	if (channelMappings[oldState?.channelId]) {
+		const channelEntry = channelMappings[oldState?.channelId];
+		const nickname = channelEntry[oldState?.id];
+		
+		//Nick ändern
+		if (channelEntry[oldState?.id]) {
+				oldState.member.setNickname()
+				.catch(err => {console.log(`Fehler beim Reset des Nicknamens: ${err}`);});
+			console.log('Benutzer auf Standard geändert');
+		}
+	}
+	
+	
 });
 
 
