@@ -53,7 +53,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 		
 		//Nick ändern
 		if (channelEntry[oldState?.id]) {
-				oldState.member.setNickname()
+				oldState.member.setNickname(null)
 				.catch(err => {console.log(`Fehler beim Reset des Nicknamens: ${err}`);});
 			console.log('Benutzer auf Standard geändert');
 		}
