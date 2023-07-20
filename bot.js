@@ -9,23 +9,23 @@ const client = new Client({
 	],
 });
 const token = 'MTEyOTMxMTgwNjk4NTM1OTQ1MQ.GNBNuj.vgTaUkabn-78zzU3UO32e_zpEHkffPH3SZwU_o';
-//Nickname mapping
-const channelMappings = {
-  '1123167904947507210': { //Darker
-    '219790807454973952': 'Halvar Saluk',
-    '469913673142501376': 'Lyra',
-    '603651594503979008': 'Moradrosch',
-    '1118451880998228048': 'Oriphan',
-	'324155395709075457': 'DM',	
-  },
-  '1123167792309477417': { //Strahd
-    '219790807454973952': 'Alvin Stopperdukk',
-    '249208306470486016': 'Arkino',
-    '452762791326253056': 'Sir Samuel Ramkin',
-    '219801430158999552': 'Theodora',
-	'324155395709075457': 'DM',
-  }
-};
+
+// Pfad zur JSON-Datei
+const filePath = path.join(__dirname, 'channelMappings.json');
+
+// Laden der Channel-Mappings aus der JSON-Datei
+function loadChannelMappings() {
+	try {
+		const data = fs.readFileSync(filePath, 'utf8');
+		return JSON.parse(data);
+	} catch (error) {
+		console.error('Fehler beim Laden der Channel-Mappings:', error);
+		return {};
+	}
+}
+
+// Lade die Channel-Mappings beim Start des Clients
+const channelMappings = loadChannelMappings();
 
 client.on('ready', () => {
   console.log('Client ist online!');
