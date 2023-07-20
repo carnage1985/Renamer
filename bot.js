@@ -8,7 +8,7 @@ const client = new Client({
 		GatewayIntentBits.GuildVoiceStates,
 	],
 });
-const token = 'MTEyOTMxMTgwNjk4NTM1OTQ1MQ.GNBNuj.vgTaUkabn-78zzU3UO32e_zpEHkffPH3SZwU_o';
+const token = process.env.TOKEN;
 
 // Pfad zur JSON-Datei
 const filePath = path.join(__dirname, 'channelMappings.json');

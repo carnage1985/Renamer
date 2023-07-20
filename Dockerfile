@@ -13,5 +13,5 @@ RUN npm install
 # Kopiere den Bot-Code in den Container
 COPY . /app
 
-# Definiere den Befehl, um den Bot auszuführen
-CMD ["node", "bot.js"]
+# Definiere den Befehl, um den Bot auszuführen und den Token als Argument zu übergeben
+CMD ["node", "bot.js", "${TOKEN}"]
