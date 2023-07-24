@@ -1,4 +1,7 @@
 const { Client, GatewayIntentBits } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
+
 const client = new Client({
 	intents: [
 		GatewayIntentBits.Guilds,
@@ -8,24 +11,24 @@ const client = new Client({
 		GatewayIntentBits.GuildVoiceStates,
 	],
 });
-const token = 'MTEyOTMxMTgwNjk4NTM1OTQ1MQ.GNBNuj.vgTaUkabn-78zzU3UO32e_zpEHkffPH3SZwU_o';
-//Nickname mapping
-const channelMappings = {
-  '1123167904947507210': { //Darker
-    '219790807454973952': 'Halvar Saluk',
-    '469913673142501376': 'Lyra',
-    '603651594503979008': 'Moradrosch',
-    '1118451880998228048': 'Oriphan',
-	'324155395709075457': 'DM',	
-  },
-  '1123167792309477417': { //Strahd
-    '219790807454973952': 'Alvin Stopperdukk',
-    '249208306470486016': 'Arkino',
-    '452762791326253056': 'Sir Samuel Ramkin',
-    '219801430158999552': 'Theodora',
-	'324155395709075457': 'DM',
-  }
-};
+const token = process.env.TOKEN;
+
+// Pfad zur JSON-Datei
+const filePath = path.join(__dirname, 'channelMappings.json');
+
+// Laden der Channel-Mappings aus der JSON-Datei
+function loadChannelMappings() {
+	try {
+		const data = fs.readFileSync(filePath, 'utf8');
+		return JSON.parse(data);
+	} catch (error) {
+		console.error('Fehler beim Laden der Channel-Mappings:', error);
+		return {};
+	}
+}
+
+// Lade die Channel-Mappings beim Start des Clients
+const channelMappings = loadChannelMappings();
 
 client.on('ready', () => {
   console.log('Client ist online!');
@@ -37,6 +40,15 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 	if (channelMappings[newState?.channelId]) {
 		const channelEntry = channelMappings[newState?.channelId];
 		const nickname = channelEntry[newState?.id];
+		const oldId = channelEntry[oldState?.id]
+		const oldNick = oldState.member.displayName
+		
+		//JSON speichern
+		const jsonString = JSON.stringify({
+		  [oldId]: oldNick,
+		});
+		const fs = require("fs");
+		fs.writeFileSync("originalNickname.json", jsonString);
 		
 		//Nick ändern
 		if (channelEntry[newState?.id]) {
@@ -49,13 +61,22 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 	//Channel leaven
 	if (channelMappings[oldState?.channelId]) {
 		const channelEntry = channelMappings[oldState?.channelId];
-		const nickname = channelEntry[oldState?.id];
+		
+		//JSON laden
+		const fs = require("fs");
+		const jsonString = fs.readFileSync("originalNickname.json");
+		const jsonObject = JSON.parse(jsonString);
+		const nickname = jsonObject[oldState?.id];
+
+		console.log(); // Bene
+		
+		//Eintrag löschen
 		
 		//Nick ändern
 		if (channelEntry[oldState?.id]) {
-				oldState.member.setNickname()
+				oldState.member.setNickname(nickname)
 				.catch(err => {console.log(`Fehler beim Reset des Nicknamens: ${err}`);});
-			console.log('Benutzer auf Standard geändert');
+			console.log('Benutzer auf " + nickname + " geändert');
 		}
 	}
 	
