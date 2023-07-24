@@ -40,6 +40,15 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 	if (channelMappings[newState?.channelId]) {
 		const channelEntry = channelMappings[newState?.channelId];
 		const nickname = channelEntry[newState?.id];
+		const oldId = oldState?.id;
+		const oldNick = oldState.member.displayName;
+		
+		//JSON speichern
+		const jsonString = JSON.stringify({
+		  [oldId]: oldNick,
+		});
+		fs.writeFileSync("originalNickname.json", jsonString);
+		console.log('JSON geschrieben: ' + jsonString)
 		
 		//Nick ändern
 		if (channelEntry[newState?.id]) {
@@ -52,13 +61,21 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 	//Channel leaven
 	if (channelMappings[oldState?.channelId]) {
 		const channelEntry = channelMappings[oldState?.channelId];
-		const nickname = channelEntry[oldState?.id];
+		
+		//JSON laden
+		const jsonString = fs.readFileSync("originalNickname.json");
+		const jsonObject = JSON.parse(jsonString);
+		const nickname = jsonObject[oldState?.id];
+		
+		//Eintrag löschen
+		
+		delete jsonObject[oldState?.id];
 		
 		//Nick ändern
 		if (channelEntry[oldState?.id]) {
-				oldState.member.setNickname(null)
+				oldState.member.setNickname(nickname)
 				.catch(err => {console.log(`Fehler beim Reset des Nicknamens: ${err}`);});
-			console.log('Benutzer auf Standard geändert');
+			console.log('Reset auf ' + nickname);
 		}
 	}
 	
