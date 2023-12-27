@@ -4,13 +4,14 @@ const path = require('path');
 
 const client = new Client({
 	intents: [
-		GatewayIntentBits.Guilds,
-		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.MessageContent,
-		GatewayIntentBits.GuildMembers,
-		GatewayIntentBits.GuildVoiceStates,
+		Intents.FLAGS.GUILDS,
+		Intents.FLAGS.GUILD_MESSAGES,
+		Intents.FLAGS.GUILD_MESSAGE_CONTENT,
+		Intents.FLAGS.GUILD_MEMBERS,
+		Intents.FLAGS.GUILD_VOICE_STATES,
 	],
 });
+
 const token = process.env.TOKEN;
 
 // Pfad zur JSON-Datei
@@ -30,58 +31,59 @@ function loadChannelMappings() {
 // Lade die Channel-Mappings beim Start des Clients
 const channelMappings = loadChannelMappings();
 
+// Definiere eine Funktion, die den Nickname eines Users ändert
+function changeNickname(member, channel) {
+  // Überprüfe, ob der Channel in der JSON Datei vorhanden ist
+  if (channelMapping.hasOwnProperty(channel.id)) {
+    // Überprüfe, ob der User in der JSON Datei vorhanden ist
+    if (channelMapping[channel.id].hasOwnProperty(member.id)) {
+      // Finde den gewünschten Nickname aus der JSON Datei
+      let newNickname = channelMapping[channel.id][member.id];
+      // Ändere den Nickname des Users
+      member.setNickname(newNickname);
+    }
+  }
+}
+
+// Definiere eine Funktion, die den Nickname eines Users zurücksetzt
+function resetNickname(member) {
+  // Setze den Nickname des Users auf seinen ursprünglichen Namen
+  member.setNickname(member.user.username);
+}
+
 client.on('ready', () => {
   console.log('Client ist online!');
 });
 
 client.on('voiceStateUpdate', (oldState, newState) => {
 
-	//Channel joinen
-	if (channelMappings[newState?.channelId]) {
-		const channelEntry = channelMappings[newState?.channelId];
-		const nickname = channelEntry[newState?.id];
-		const oldId = oldState?.id;
-		const oldNick = oldState.member.displayName;
-		
-		//JSON speichern
-		const jsonString = JSON.stringify({
-		  [oldId]: oldNick,
-		});
-		fs.writeFileSync("originalNickname.json", jsonString);
-		console.log('JSON geschrieben: ' + jsonString)
-		
-		//Nick ändern
-		if (channelEntry[newState?.id]) {
-				newState.member.setNickname(nickname)
-				.catch(err => {console.log(`Fehler beim Ändern des Nicknamens auf ${nickname}: ${err}`);});
-			console.log('Benutzer geändert auf '+nickname);
-		}
-	}
-	
-	//Channel leaven
-	if (channelMappings[oldState?.channelId]) {
-		const channelEntry = channelMappings[oldState?.channelId];
-		
-		//JSON laden
-		const jsonString = fs.readFileSync("originalNickname.json");
-		const jsonObject = JSON.parse(jsonString);
-		const nickname = jsonObject[oldState?.id];
-		
-		//Eintrag löschen
-		
-		delete jsonObject[oldState?.id];
-		
-		//Nick ändern
-		if (channelEntry[oldState?.id]) {
-				oldState.member.setNickname(nickname)
-				.catch(err => {console.log(`Fehler beim Reset des Nicknamens: ${err}`);});
-			console.log('Reset auf ' + nickname);
-		}
-	}
-	
-	
+// Reagiere auf das Ereignis, wenn ein User einem Channel beitritt
+client.on("voiceStateUpdate", (oldState, newState) => {
+  // Finde den User, der den Channel gewechselt hat
+  let member = newState.member;
+  // Finde den Channel, dem der User beigetreten ist
+  let newChannel = newState.channel;
+  // Finde den Channel, den der User verlassen hat
+  let oldChannel = oldState.channel;
+
+  // Überprüfe, ob der User einem Channel beigetreten ist
+  if (newChannel) {
+    // Ändere den Nickname des Users entsprechend dem Channel
+    changeNickname(member, newChannel);
+  }
+
+  // Überprüfe, ob der User einen Channel verlassen hat
+  if (oldChannel) {
+    // Setze den Nickname des Users zurück
+    resetNickname(member);
+  }
 });
 
+// Reagiere auf das Ereignis, wenn ein User den Server verlässt
+client.on("guildMemberRemove", (member) => {
+  // Setze den Nickname des Users zurück
+  resetNickname(member);
+});
 
 client.login(token);
 
